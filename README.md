@@ -5,7 +5,7 @@ The app will help users manage their expenses, budgets, and savings in a simple 
 
 ## Tech Stack
 - **Frontend:** React Native
-- **Database:** AsyncStorage (for local storage)
+- **Database:** AsyncStorage and SQLite (for local storage)
 
 ## Status
 Currently in development — initial setup and structure ready.
