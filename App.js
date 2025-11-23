@@ -1,25 +1,26 @@
 // native components 
-import { Image, TouchableOpacity, useColorScheme } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 // navigation components 
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// utils 
+import { ReadAsync } from './Database/AsyncStorage';
+import { ThemeContext, useAppTheme } from './Utils/ThemeContext';
 // icons and styles 
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from './Constants/Colors';
 // custom components
 import { Budget, Home, Profile, Reports, Tools, Transactions } from './Screens';
 
-
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // bottom navigation 
 function HomeBottomNavigator() {
-  // light/dark theme 
-  const colorScheme = useColorScheme();
-  const theme = Theme[colorScheme] ?? Theme.light;
+  const { theme } = useAppTheme();
   return (
     <Tab.Navigator screenOptions={({ route }) => ({
       headerShown: false,
@@ -56,20 +57,35 @@ function HomeBottomNavigator() {
 
 // main stack navigation 
 export default function App() {
-  // light/dark theme 
-  const colorScheme = useColorScheme();
+  // light/dark theme
+  const [colorScheme, setColorScheme] = useState('light');
+  useEffect(() => {
+    (async () => {
+      try {
+        const userTheme = await ReadAsync('Theme');
+        if (userTheme == 'dark' || userTheme == 'light') {
+          setColorScheme(userTheme);
+        }
+      } catch (err) {
+        console.warn('unable to fetch theme', err);
+      }
+    })();
+  }, [])
   const theme = Theme[colorScheme] ?? Theme.light;
+
   return (
-    <>
-      <StatusBar value="auto" />
+    <ThemeContext.Provider value={{ theme, colorScheme, setColorScheme }}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor={theme.background} />
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{
+          headerStyle: {
+            backgroundColor: theme.background
+          },
+          headerTintColor: theme.textPrimary
+        }
+        }>
           <Stack.Screen name="Main" component={HomeBottomNavigator} options={({ navigation }) => ({
-            headerStyle: {
-              backgroundColor: theme.background
-            },
-            headerTintColor: theme.textPrimary,
-            headerTitle: 'Dashboard',
+            headerTitle: 'WealthWise',
             headerRight: () => (
               <TouchableOpacity
                 onPress={() => navigation.navigate('Profile')}
@@ -85,6 +101,6 @@ export default function App() {
           <Stack.Screen name="Profile" component={Profile} />
         </Stack.Navigator>
       </NavigationContainer>
-    </>
+    </ThemeContext.Provider>
   );
 }
