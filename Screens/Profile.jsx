@@ -1,18 +1,20 @@
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { CreateAsync } from '../Database/AsyncStorage';
-import { useAppTheme } from '../Utils/ThemeContext';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setTheme,
+  toggleThemeLocally
+} from '../Database/SQLiteSlices/ThemeSlice';
 
 const Profile = () => {
-  const { colorScheme, setColorScheme } = useAppTheme();
+  const dispatch = useDispatch();
+  const colorScheme = useSelector(state => state.theme.theme);
   async function changeTheme() {
-    let toggleTheme;
-    if (colorScheme == 'light') {
-      toggleTheme = 'dark';
-    } else {
-      toggleTheme = 'light';
+    try {
+      dispatch(setTheme(colorScheme));
+      dispatch(toggleThemeLocally(colorScheme));
+    } catch (error) {
+      console.log(error);
     }
-    await CreateAsync('Theme', toggleTheme);
-    setColorScheme(toggleTheme);
   }
   return (
     <View>
